@@ -30,12 +30,15 @@ test("parses roles, first candidates, quotes, and aliases", () => {
   assert.deepEqual(parseModelRoles("theme: dark\n"), []);
 });
 
-test("active role prefers the pick, then thinking, then config order", () => {
+test("active role prefers the pick, then the same thinking level", () => {
   const roles = parseModelRoles(CONFIG);
   const opus = "anthropic/claude-opus-5-5";
   assert.equal(activeRole(roles, opus, "xhigh", "plan"), "plan");
   assert.equal(activeRole(roles, opus, "xhigh", undefined), "slow");
-  assert.equal(activeRole(roles, opus, "low", undefined), "default");
+  // A model that a role uses, at a level that no role uses, is no role.
+  assert.equal(activeRole(roles, opus, "low", undefined), undefined);
+  assert.equal(activeRole(roles, opus, null, undefined), "default");
+  assert.equal(activeRole(roles, "anthropic/claude-haiku-4-5", "low", undefined), "web");
   assert.equal(activeRole(roles, opus, "high", "smol"), "default");
   assert.equal(activeRole(roles, "other/model", "high", "default"), undefined);
 });

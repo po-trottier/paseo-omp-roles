@@ -29,12 +29,12 @@ export default function contribute(client: PluginClientContext) {
 
   // Returns the pill label and records the active role for the popover.
   const label = (agent: Agent): string => {
-    const active = activeRole(
-      roles,
-      agent.runtimeInfo?.model,
-      agent.runtimeInfo?.thinkingOptionId,
-      picked.get(agent.id) ?? roleAlias(agent.model),
-    );
+    const model = agent.runtimeInfo?.model;
+    // Paseo keeps its last thinking level when omp changes the model, for example
+    // after `/switch`. The level is correct only while the model is the one that
+    // Paseo set.
+    const thinking = model === agent.model ? agent.runtimeInfo?.thinkingOptionId : undefined;
+    const active = activeRole(roles, model, thinking, picked.get(agent.id) ?? roleAlias(agent.model));
     actives.set(agent.id, active);
     return active ?? "No role";
   };

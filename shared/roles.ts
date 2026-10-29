@@ -54,8 +54,9 @@ export function parseModelRoles(yaml: string): OmpRole[] {
 
 /**
  * Names the role whose model the agent runs. `picked` wins while its model still
- * runs, because several roles can share one model. Otherwise the thinking level
- * breaks the tie, then the order in config.yml.
+ * runs, because several roles can share one model. A known `thinking` must then
+ * equal the level of the role, and a role without a level accepts any level. An
+ * unknown `thinking` (null or undefined) selects the first role in config.yml.
  */
 export function activeRole(
   roles: readonly OmpRole[],
@@ -65,7 +66,10 @@ export function activeRole(
 ): string | undefined {
   const candidates = roles.filter((role) => role.model === model);
   if (picked && candidates.some((role) => role.name === picked)) return picked;
-  return (candidates.find((role) => role.thinking === thinking) ?? candidates[0])?.name;
+  if (thinking == null) return candidates[0]?.name;
+  return (
+    candidates.find((role) => role.thinking === thinking) ?? candidates.find((role) => role.thinking === null)
+  )?.name;
 }
 
 /**
