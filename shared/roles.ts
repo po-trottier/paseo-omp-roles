@@ -72,22 +72,55 @@ export function activeRole(
   )?.name;
 }
 
+export interface RolePick {
+  role: string;
+  /** The thinking level that Paseo shows while the pick holds. */
+  thinking: string | null | undefined;
+  /** The level that Paseo showed before the pick, until Paseo shows `thinking`. */
+  previous?: string | null | undefined;
+}
+
+/** Returns the role name with a capital first letter, for the UI only. */
+export function roleLabel(name: string): string {
+  return name.charAt(0).toUpperCase() + name.slice(1);
+}
+
 /**
- * Records `role` as the agent's pick and sends `/switch @role`. A failed send
+ * Returns the role picked for the agent. The pick holds while Paseo shows the
+ * level of the pick, or the earlier level until the new level arrives. Any
+ * other level means that you set a new level in Paseo, so the pick ends.
+ */
+export function currentPick(
+  picked: Map<string, RolePick>,
+  agentId: string,
+  thinking: string | null | undefined,
+): string | undefined {
+  const pick = picked.get(agentId);
+  if (!pick) return undefined;
+  if (thinking === pick.thinking) delete pick.previous;
+  else if (!("previous" in pick) || thinking !== pick.previous) {
+    picked.delete(agentId);
+    return undefined;
+  }
+  return pick.role;
+}
+
+/**
+ * Records `pick` as the agent's pick and sends `/switch @role`. A failed send
  * restores the earlier pick, so the label does not claim a role that never ran.
  */
 export async function pickRole(
-  picked: Map<string, string>,
+  picked: Map<string, RolePick>,
   agentId: string,
-  role: string,
+  pick: RolePick,
   send: (text: string) => Promise<void>,
 ): Promise<void> {
   const previous = picked.get(agentId);
-  picked.set(agentId, role);
+  picked.set(agentId, pick);
   try {
-    await send(`/switch @${role}`);
+    await send(`/switch @${pick.role}`);
   } catch (error) {
-    if (picked.get(agentId) === role) {
+    if (picked.get(agentId) === pick) {
       if (previous === undefined) picked.delete(agentId);
       else picked.set(agentId, previous);
     }

@@ -2,7 +2,7 @@ import type { PluginButtonContentProps } from "@getpaseo/plugin/client";
 import { Icon, useToast } from "@getpaseo/plugin/client/ui";
 import { useMemo } from "react";
 import { Pressable, Text, View } from "react-native";
-import type { OmpRole } from "../shared/roles";
+import { roleLabel, type OmpRole } from "../shared/roles";
 
 export interface RolePickerSource {
   roles(): readonly OmpRole[];
@@ -52,23 +52,25 @@ export function createRolePicker(source: RolePickerSource) {
 
     return (
       <View style={styles.list}>
-        <Text style={styles.header}>Switch role for this session</Text>
+        <Text style={styles.header}>
+          {active ? "Switch role for this session" : "This chat uses no role. Pick one to switch."}
+        </Text>
         {source.roles().map((role) => {
           const selected = role.name === active;
           const slash = role.model.indexOf("/");
           const provider = slash > 0 ? role.model.slice(0, slash) : "";
           const model = role.model.slice(role.model.lastIndexOf("/") + 1);
+          const name = roleLabel(role.name);
           return (
             <Pressable
               key={role.name}
               accessibilityRole="button"
               accessibilityState={{ selected }}
-              accessibilityLabel={`Switch to ${role.name}: ${model}${role.thinking ? `, ${role.thinking} thinking` : ""}`}
+              accessibilityLabel={`Switch to ${name}: ${model}${role.thinking ? `, ${role.thinking} thinking` : ""}`}
               onPress={() => {
                 close();
-                if (selected) return;
                 source.pick(agentId, role.name).catch((error: unknown) => {
-                  toast.error(`Could not switch to ${role.name}: ${error instanceof Error ? error.message : String(error)}`);
+                  toast.error(`Could not switch to ${name}: ${error instanceof Error ? error.message : String(error)}`);
                 });
               }}
               style={({ pressed }) => [styles.row, selected && styles.selected, pressed && styles.pressed]}
@@ -77,7 +79,7 @@ export function createRolePicker(source: RolePickerSource) {
                 {selected ? <Icon name="Check" size={14} color={theme.colors.accent} /> : null}
               </View>
               <View style={styles.text}>
-                <Text style={styles.name}>{role.name}</Text>
+                <Text style={styles.name}>{name}</Text>
                 <Text style={styles.model} numberOfLines={1}>
                   {provider ? `${model} · ${provider}` : model}
                 </Text>
