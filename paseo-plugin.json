@@ -1,7 +1,10 @@
 {
   "id": "paseo-omp-roles",
   "name": "OMP Roles",
-  "media": [],
+  "media": [
+    "https://raw.githubusercontent.com/po-trottier/paseo-omp-roles/main/assets/role-picker-desktop.png",
+    "https://raw.githubusercontent.com/po-trottier/paseo-omp-roles/main/assets/role-picker-mobile.png"
+  ],
   "requirements": {
     "paseo": ">=0.13.2"
   },
