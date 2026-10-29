@@ -1,4 +1,4 @@
-# paseo-omp-roles
+# OMP Roles
 
 A Paseo plugin that adds an omp role picker to the composer of each OMP (Oh My Pi) agent. See [OVERVIEW.md](OVERVIEW.md).
 
